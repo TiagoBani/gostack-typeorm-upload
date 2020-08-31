@@ -9,7 +9,7 @@ interface Balance {
 }
 
 interface TransactionTotal {
-  type: string;
+  type: 'income' | 'outcome';
   total: number;
 }
 
@@ -26,8 +26,7 @@ class TransactionsRepository extends Repository<Transaction> {
     const balance: Balance = { income: 0, outcome: 0, total: 0 };
 
     transactions.forEach(transaction => {
-      if (transaction.type === 'income') balance.income = transaction.total;
-      if (transaction.type === 'outcome') balance.outcome = transaction.total;
+      balance[transaction.type] = transaction.total;
     });
 
     balance.total = balance.income - balance.outcome;
