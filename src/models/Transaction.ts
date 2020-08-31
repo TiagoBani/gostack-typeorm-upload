@@ -4,9 +4,11 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  Entity,
 } from 'typeorm';
 import Category from './Category';
 
+@Entity('transactions')
 class Transaction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
