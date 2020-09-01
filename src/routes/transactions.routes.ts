@@ -1,10 +1,18 @@
+import fs from 'fs';
+
 import { Router } from 'express';
+import multer from 'multer';
+import parse from 'csv-parse';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import Transaction from '../models/Transaction';
 import CreateTransactionService from '../services/CreateTransactionService';
 import DeleteTransactionService from '../services/DeleteTransactionService';
-// import ImportTransactionsService from '../services/ImportTransactionsService';
+import ImportTransactionsService from '../services/ImportTransactionsService';
+
+import uploadConfig from '../config/upload';
+
+const upload = multer(uploadConfig);
 
 const transactionsRouter = Router();
 
@@ -23,17 +31,25 @@ transactionsRouter.post('/', async (request, response) => {
     type,
     category,
   });
-  response.status(201).json({ ...transaction });
+  return response.status(201).json({ ...transaction });
 });
 
 transactionsRouter.delete('/:id', async (request, response) => {
   const { id } = request.params;
   await DeleteTransactionService.execute(id);
-  response.status(204).send();
+  return response.status(204).send();
 });
 
-transactionsRouter.post('/import', async (request, response) => {
-  // TODO
-});
+transactionsRouter.post(
+  '/import',
+  upload.single('import'),
+  async (request, response) => {
+    const { path } = request.file;
+
+    const transactionsPromises = await ImportTransactionsService.execute(path);
+    const transactions = await Promise.all(transactionsPromises);
+    return response.status(201).json(transactions);
+  },
+);
 
 export default transactionsRouter;
