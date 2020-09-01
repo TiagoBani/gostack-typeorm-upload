@@ -5,11 +5,12 @@ import {
   ManyToOne,
   JoinColumn,
   Entity,
+  BaseEntity,
 } from 'typeorm';
 import Category from './Category';
 
 @Entity('transactions')
-class Transaction {
+class Transaction extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -25,7 +26,7 @@ class Transaction {
   @Column()
   category_id: string;
 
-  @ManyToOne(() => Category)
+  @ManyToOne(() => Category, { eager: true })
   @JoinColumn({ name: 'category_id' })
   category: Category;
 
