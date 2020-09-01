@@ -1,6 +1,7 @@
 import AppError from '../errors/AppError';
 import Transaction from '../models/Transaction';
 import Category from '../models/Category';
+import TransactionsRepository from '../repositories/TransactionsRepository';
 
 interface CreateTransactionDTO {
   title: string;
@@ -22,6 +23,10 @@ class CreateTransactionService {
     if (!type || ['income', 'outcome'].indexOf(type) < 0)
       throw new AppError(`Transactions param type is not valid`);
     if (!category) throw new AppError(`This category ${category} is not valid`);
+
+    const balance = await TransactionsRepository.getBalance();
+    if (type === 'outcome' && balance.total < value)
+      throw new AppError(`This transactions outcome without valid balance`);
 
     const categoryExists = await Category.findOne({
       where: { title: category },
