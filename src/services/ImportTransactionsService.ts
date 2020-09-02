@@ -5,7 +5,7 @@ import parse from 'csv-parse';
 import Transaction from '../models/Transaction';
 import AppError from '../errors/AppError';
 import TransactionsRepository from '../repositories/TransactionsRepository';
-import Category from '../models/Category';
+import CreateTransactionService from './CreateTransactionService';
 
 interface CsvRow {
   title: string;
@@ -41,13 +41,18 @@ class ImportTransactionsService {
           if (!category)
             throw new AppError(`This category ${category} is not valid`);
 
-          balance[type.trim() as 'income' | 'outcome'] = Number(value);
+          balance[type.trim() as 'income' | 'outcome'] = Number(value.trim);
           if (type === 'outcome' && balance.total < value)
             throw new AppError(
               `This transactions outcome without valid balance`,
             );
 
-          const row: CsvRow = { title, type, value, category };
+          const row: CsvRow = {
+            title: title.trim(),
+            type: type.trim(),
+            value: value.trim(),
+            category: category.trim(),
+          };
 
           return csvRows.push(row);
         })
@@ -57,26 +62,13 @@ class ImportTransactionsService {
     });
 
     const transactions = output.map(
-      async ({ type, title, value, category }: CsvRow) => {
-        const categoryExists = await Category.findOne({
-          where: { title: category },
-        });
-
-        let category_id = categoryExists?.id;
-        if (!categoryExists) {
-          const categoryCreated = Category.create({ title: category });
-          await categoryCreated.save();
-
-          category_id = categoryCreated.id;
-        }
-
-        const transaction = Transaction.create({
+      ({ type, title, value, category }: CsvRow) => {
+        return CreateTransactionService.execute({
           type,
           title,
           value,
-          category_id,
+          category,
         });
-        return transaction.save();
       },
     );
 

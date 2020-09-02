@@ -25,10 +25,6 @@ class CreateTransactionService {
       throw new AppError(`Transactions param type ${type} is not valid`);
     if (!category) throw new AppError(`This category ${category} is not valid`);
 
-    const balance = await TransactionsRepository.getBalance();
-    if (type === 'outcome' && balance.total < value)
-      throw new AppError(`This transactions outcome without valid balance`);
-
     const categoryExists = await Category.findOne({
       where: { title: category },
     });

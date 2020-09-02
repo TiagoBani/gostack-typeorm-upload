@@ -1,8 +1,5 @@
-import fs from 'fs';
-
 import { Router } from 'express';
 import multer from 'multer';
-import parse from 'csv-parse';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import Transaction from '../models/Transaction';
@@ -11,6 +8,7 @@ import DeleteTransactionService from '../services/DeleteTransactionService';
 import ImportTransactionsService from '../services/ImportTransactionsService';
 
 import uploadConfig from '../config/upload';
+import AppError from '../errors/AppError';
 
 const upload = multer(uploadConfig);
 
@@ -24,6 +22,10 @@ transactionsRouter.get('/', async (request, response) => {
 
 transactionsRouter.post('/', async (request, response) => {
   const { title, value, type, category } = request.body;
+
+  const balance = await TransactionsRepository.getBalance();
+  if (type === 'outcome' && balance.total < value)
+    throw new AppError(`This transactions outcome without valid balance`);
 
   const transaction = await CreateTransactionService.execute({
     title,
@@ -42,7 +44,7 @@ transactionsRouter.delete('/:id', async (request, response) => {
 
 transactionsRouter.post(
   '/import',
-  upload.single('import'),
+  upload.single('file'),
   async (request, response) => {
     const { path } = request.file;
 
