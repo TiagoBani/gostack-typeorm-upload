@@ -1,7 +1,6 @@
 import AppError from '../errors/AppError';
 import Transaction from '../models/Transaction';
 import Category from '../models/Category';
-import TransactionsRepository from '../repositories/TransactionsRepository';
 
 interface CreateTransactionDTO {
   title: string;
